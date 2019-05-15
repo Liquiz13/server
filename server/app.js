@@ -2,7 +2,7 @@ const http = require('http')
 const port = 3000
 const requestHandler = (request, response) => {
     console.log(request.url)
-    response.end('Andryxa rabotaet!')
+    response.end('server working now!')
 }
 const server = http.createServer(requestHandler)
 server.listen(port, (err) => {
