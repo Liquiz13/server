@@ -93,8 +93,8 @@ app.delete('/users/:id', function (req, res) {
     const requestId = req.params.id;
     User.remove({_id: requestId})
         .exec()
-        .then(res => {
-            res.status(200).json(result);
+        .then(result => {
+            res.status(200).json('User deleted' + result);
         })
         .catch (err => {
             console.log(err);
