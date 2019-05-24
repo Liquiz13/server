@@ -91,11 +91,12 @@ app.get('/users/:id', (req, res) => {
 
 app.delete('/users/:id', function (req, res) {
     const requestId = req.params.id;
-    User.remove({_id: requestId})
+    const name = req.body.name;
+
+        User.deleteOne({_id: requestId})
         .exec()
-        .then(result => {
-            res.status(200).json('User deleted' + result);
-        })
+        .then(res.send('User ' + name + ' deleted')
+        )
         .catch (err => {
             console.log(err);
             res.status(500).json({
