@@ -121,17 +121,17 @@ app.put ('/users/:id/friends/', function (req, res) {
 const requestId = req.body.id;
 const ownId = req.params.id;
     User.updateOne({_id: requestId}, {$set: {
-        friend: new req.body.friend
+        friend: req.body.friend
     }
 })
     .exec()
     .then(User.updateOne({_id: ownId}, {$set: {
-        friend: new req.body.id
+        friend: req.body.id
     }
 })
     .exec()
     .then(friend => {
-        res.status(200).json('You get a new friend');
+        res.status(200).json('You get a new friend' + friend);
     })
 )
     .catch(err => {
