@@ -5,8 +5,8 @@ const userSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     name: String,
     email: String,
-    request: Array,
-    friend: Array,
+    requests: Array,
+    friends: Array,
 })
 
 module.exports = mongoose.model('User', userSchema)

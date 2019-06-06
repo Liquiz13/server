@@ -104,9 +104,9 @@ app.delete('/users/:id', function (req, res) {
 
 app.post ('/users/:id/friends/', function (req, res) {
 const requestId = req.params.id;
-User.findOneAndUpdate({_id: requestId}, {$set: {
-    request: req.body.request
-    }
+User.updateOne({_id: requestId}, { $push: {
+    requests: req.body.requests
+}
 })
     .exec()
     .then(request => {
@@ -120,21 +120,21 @@ User.findOneAndUpdate({_id: requestId}, {$set: {
 app.put ('/users/:id/friends/', function (req, res) {
 const requestId = req.body.id;
 const ownId = req.params.id;
-    User.updateOne({_id: requestId}, {$set: {
-        friend: req.body.friend
-    }
+User.updateOne({_id: requestId}, { $push: {
+    friends: req.body.friends
+}
 })
     .exec()
-    .then(User.updateOne({_id: ownId}, {$set: {
-        friend: req.body.id
+    .then(user.updateOne({_id: ownId}, { $push: {
+        friends: req.body.id
     }
-})
+    })   
     .exec()
-    .then(friend => {
-        res.status(200).json('You get a new friend' + friend);
+    .then(result => { 
+        res.status(200).json(result);
     })
 )
     .catch(err => {
-        res.status(500).json({error: err})
-    })
+        res.status(500).json({error: err});
+    });
 })
