@@ -3,8 +3,18 @@ const app = express();
 const mongoose = require('mongoose');
 const bodyParser  = require('body-parser');
 const User = require('./api/user');
+const userRoutes = require('./api/routes/users');
+const session = require('express-session');
+const passport = require ('passport');
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/users', userRoutes);
+app.use(session({
+  secret: 'secr',
+  saveUninitialized: false,
+  resave: false
+}));
 
 mongoose.connect('mongodb+srv://Liquiz:13212312@clust13-sqjxl.mongodb.net/test?retryWrites=true', function (err)  {
     useMongoClient: true;
@@ -12,94 +22,28 @@ mongoose.connect('mongodb+srv://Liquiz:13212312@clust13-sqjxl.mongodb.net/test?r
     if (err) throw err;
     console.log('Successfully connected');
 });
+require('./api/config/passport');
+app.use(passport.initialize())
+app.use(passport.session())
 
 app.listen(3000, function () {
     console.log('Example app listening on port 3000!');
 });
 
+const auth = (req, res, next) => {
+    if (req.isAuthenticated()) {
+        next()
+    } else {
+        return res.redirect('/');
+    }
+}
+
 app.get('/', function (req, res) {
     res.send('Hello World!');
 });
 
-const users = [];
-
-app.post('/users', function (req, res) {
-    const user = new User ({
-        _id: new mongoose.Types.ObjectId(),
-        name: req.body.name,
-        email: req.body.email
-    });
-    user.save().then(result => {
-        res.status(200).json(result);
-    })
-    .catch (err => {
-        res.status(500).json({ error: err})
-    });
-    users.push(user);
-    res.json(user);
-});
-
-app.put('/users/:id', function (req, res) {
-    const requestId = req.params.id;
-    User.update({_id: requestId}, {$set: {
-        name: req.body.name,
-        email: req.body.email
-        },
-
-})
-        .exec()
-        .then(result => {
-            res.status(200).json(result);
-        })
-        .catch (err => {
-            res.status(500).json({
-                error: err
-            });
-        });
-});
-
-app.get('/users', function (req, res) {
-    User.find().exec().then(docs => {
-        if (docs) {
-            res.status(200).json(docs);
-        } else {
-            res.status(404).json({message: 'No valid id'})
-        }
-    })
-        .catch(err => {
-            res.status(500).json({error: err})
-        });
-});
-
-app.get('/users/:id', (req, res) => {
-    const requestId = req.params.id;
-    User.findById(requestId)
-    .exec()
-    .then(doc => {
-        if (doc) {
-            res.status(200).json(doc);
-        } else {
-            res.status(404).json({message: 'No valid id'})
-        }
-    })
-        .catch(err => {
-            res.status(500).json({error: err})
-        });
-});
-
-app.delete('/users/:id', function (req, res) {
-    const requestId = req.params.id;
-    const name = req.body.name;
-
-    User.deleteOne({_id: requestId})
-        .exec()
-        .then(res.send('User ' + name + ' deleted')
-        )
-        .catch (err => {
-            res.status(500).json({
-                error: err
-            });
-        });
+app.get('/test', auth, function (req, res) {
+    res.send('Autherized');
 });
 
 app.post ('/users/:id/friends/', function (req, res) {
@@ -137,4 +81,27 @@ User.updateOne({_id: requestId}, { $push: {
     .catch(err => {
         res.status(500).json({error: err});
     });
+})
+
+
+app.post('/users/login', (req, res, next) => {
+    passport.authenticate('local.signup', function(err, user) {
+        if (err) {
+            return next(err);
+        }
+        if (!user) {
+            return res.send('Укажите правильный email или пароль!');
+        }
+        req.logIn(user, function(err) {
+            if (err) {
+            return next(err);
+            }
+            return res.redirect('/test');
+        });
+        })(req, res, next);
+  });
+
+app.get('/logout', (req, res) => {
+    req.logOut();
+    res.redirect('/');
 })
