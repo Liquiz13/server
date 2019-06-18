@@ -29,10 +29,12 @@ app.post('/users', function (req, res) {
         name: req.body.name,
         email: req.body.email
     });
-    user.save().then(result =>{
-        console.log(result);
+    user.save().then(result => {
+        res.status(200).json(result);
     })
-        .catch(err => console.log(err));
+    .catch (err => {
+        res.status(500).json({ error: err})
+    });
     users.push(user);
     res.json(user);
 });
@@ -47,11 +49,9 @@ app.put('/users/:id', function (req, res) {
 })
         .exec()
         .then(result => {
-            console.log(result);
             res.status(200).json(result);
         })
         .catch (err => {
-            console.log(err);
             res.status(500).json({
                 error: err
             });
@@ -60,7 +60,6 @@ app.put('/users/:id', function (req, res) {
 
 app.get('/users', function (req, res) {
     User.find().exec().then(docs => {
-        console.log('From data', docs);
         if (docs) {
             res.status(200).json(docs);
         } else {
@@ -68,15 +67,15 @@ app.get('/users', function (req, res) {
         }
     })
         .catch(err => {
-            console.log(err);
             res.status(500).json({error: err})
         });
 });
 
 app.get('/users/:id', (req, res) => {
     const requestId = req.params.id;
-    User.findById(requestId).exec().then(doc => {
-        console.log('From data', doc);
+    User.findById(requestId)
+    .exec()
+    .then(doc => {
         if (doc) {
             res.status(200).json(doc);
         } else {
@@ -84,7 +83,6 @@ app.get('/users/:id', (req, res) => {
         }
     })
         .catch(err => {
-            console.log(err);
             res.status(500).json({error: err})
         });
 });
@@ -93,14 +91,50 @@ app.delete('/users/:id', function (req, res) {
     const requestId = req.params.id;
     const name = req.body.name;
 
-        User.deleteOne({_id: requestId})
+    User.deleteOne({_id: requestId})
         .exec()
         .then(res.send('User ' + name + ' deleted')
         )
         .catch (err => {
-            console.log(err);
             res.status(500).json({
                 error: err
             });
         });
 });
+
+app.post ('/users/:id/friends/', function (req, res) {
+const requestId = req.params.id;
+User.updateOne({_id: requestId}, { $push: {
+    requests: req.body.requests
+}
+})
+    .exec()
+    .then(request => {
+        res.status(200).json(request);
+    })
+    .catch (err => {
+        res.status(500).json({ error: err});
+    });
+});
+
+app.put ('/users/:id/friends/', function (req, res) {
+const requestId = req.body.id;
+const ownId = req.params.id;
+User.updateOne({_id: requestId}, { $push: {
+    friends: req.body.friends
+}
+})
+    .exec()
+    .then(user.updateOne({_id: ownId}, { $push: {
+        friends: req.body.id
+    }
+    })   
+    .exec()
+    .then(result => { 
+        res.status(200).json(result);
+    })
+)
+    .catch(err => {
+        res.status(500).json({error: err});
+    });
+})
