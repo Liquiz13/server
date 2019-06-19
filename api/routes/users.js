@@ -2,7 +2,6 @@ const express = require ('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 const User = require('../user');
-const users = [];
 
 router.post('/', function (req, res) {
     const user = new User ({
